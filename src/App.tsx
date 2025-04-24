@@ -10,6 +10,10 @@ import SignupPage from "./pages/auth/SignupPage";
 import LoginPage from "./pages/auth/LoginPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import HomePage from "./pages/HomePage";
+import ProfilePage from "./pages/ProfilePage";
+import ComplaintsPage from "./pages/ComplaintsPage";
+import PostPage from "./pages/PostPage";
+import EventsPage from "./pages/EventsPage";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +29,10 @@ const App = () => (
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/home" element={<HomePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/complaints" element={<ComplaintsPage />} />
+          <Route path="/post" element={<PostPage />} />
+          <Route path="/events" element={<EventsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
