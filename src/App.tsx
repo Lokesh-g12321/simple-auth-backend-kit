@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import SignupPage from "./pages/auth/SignupPage";
 import LoginPage from "./pages/auth/LoginPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import HomePage from "./pages/HomePage";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/home" element={<HomePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
