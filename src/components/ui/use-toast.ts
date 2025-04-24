@@ -1,3 +1,3 @@
-import { useToast, toast } from "@/hooks/use-toast";
 
-export { useToast, toast };
+// Export the hooks directly from the hooks folder
+export { useToast, toast } from "@/hooks/use-toast";
