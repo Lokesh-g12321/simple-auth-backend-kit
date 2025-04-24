@@ -1,4 +1,3 @@
-
 import { useState, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +21,7 @@ import {
   Moon
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import BackButton from "@/components/BackButton";
 
 const ProfilePage = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -66,7 +66,8 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-100 to-gray-300">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 relative">
+        <BackButton />
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Profile</h1>
           <Button variant="ghost" size="icon">

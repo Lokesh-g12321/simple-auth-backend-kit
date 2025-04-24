@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import Map from "@/components/Map";
+import BackButton from "@/components/BackButton";
 
 const LocatorPage = () => {
   const [mapboxToken, setMapboxToken] = useState("");
@@ -17,7 +17,8 @@ const LocatorPage = () => {
 
   return (
     <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-100 to-gray-300">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 relative">
+        <BackButton />
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">SBM Toilet Locator</h1>
           <p className="text-gray-600">Find nearby facilities for your convenience</p>

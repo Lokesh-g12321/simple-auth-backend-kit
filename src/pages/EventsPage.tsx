@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BottomNav from "@/components/BottomNav";
 import { Calendar, Clock, MapPin, Search, User } from "lucide-react";
+import BackButton from "@/components/BackButton";
 
 const EventsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -108,7 +108,8 @@ const EventsPage = () => {
 
   return (
     <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-100 to-gray-300">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 relative">
+        <BackButton />
         <h1 className="text-2xl font-bold mb-6 text-center">Community Events</h1>
         
         <div className="relative mb-6">

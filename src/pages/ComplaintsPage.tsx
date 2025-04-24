@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import BottomNav from "@/components/BottomNav";
 import { Search } from "lucide-react";
+import BackButton from "@/components/BackButton";
 
 const ComplaintsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,7 +64,8 @@ const ComplaintsPage = () => {
 
   return (
     <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-100 to-gray-300">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 relative">
+        <BackButton />
         <h1 className="text-2xl font-bold mb-6 text-center">Complaints</h1>
         
         <div className="relative mb-6">
