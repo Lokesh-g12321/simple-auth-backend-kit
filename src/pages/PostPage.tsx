@@ -26,6 +26,14 @@ const PostPage = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // Keywords for automatic categorization based on complaint description
+  const categoryKeywords = {
+    "sanitation": ["garbage", "trash", "waste", "dirty", "litter", "dump", "sewage"],
+    "water": ["water", "flood", "pipe", "leak", "drainage", "sewage", "drinking"],
+    "road": ["road", "street", "pothole", "traffic", "sidewalk", "pavement", "crack"],
+    "electricity": ["electricity", "power", "light", "outage", "pole", "wire", "bulb"],
+  };
+
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -65,6 +73,69 @@ const PostPage = () => {
     }
   };
 
+  // Auto-detect category based on description text
+  const detectCategory = (text: string) => {
+    const lowerText = text.toLowerCase();
+    
+    for (const [cat, keywords] of Object.entries(categoryKeywords)) {
+      if (keywords.some(keyword => lowerText.includes(keyword))) {
+        return cat;
+      }
+    }
+    
+    return "";
+  };
+
+  // Detect location using browser's geolocation
+  const fetchLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(async position => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        try {
+          // Using OpenStreetMap's Nominatim for reverse geocoding
+          const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (data && data.address) {
+            const address = data.address;
+            const locationString = [
+              address.road,
+              address.suburb,
+              address.village || address.town || address.city,
+              address.state,
+              address.postcode,
+              "India"
+            ].filter(Boolean).join(", ");
+            
+            setLocation(locationString);
+          }
+        } catch (error) {
+          console.error('Error fetching location details:', error);
+        }
+      }, error => {
+        console.error('Error getting location:', error);
+        toast({
+          title: "Location Error",
+          description: "Unable to fetch your current location.",
+          variant: "destructive",
+        });
+      });
+    }
+  };
+
+  // Effect for auto-categorization when description changes
+  useEffect(() => {
+    if (description && !category) {
+      const detectedCategory = detectCategory(description);
+      if (detectedCategory) {
+        setCategory(detectedCategory);
+      }
+    }
+  }, [description]);
+
   useEffect(() => {
     return () => {
       stopCamera();
@@ -76,8 +147,24 @@ const PostPage = () => {
     setIsSubmitting(true);
 
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Process the complaint data
+      const complaintData = {
+        id: Date.now().toString(),
+        title,
+        description,
+        category,
+        location,
+        image,
+        status: "Pending",
+        date: new Date().toISOString(),
+      };
+
+      // Get existing complaints or initialize an empty array
+      const existingComplaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+      
+      // Add new complaint and save back to localStorage
+      existingComplaints.push(complaintData);
+      localStorage.setItem('complaints', JSON.stringify(existingComplaints));
       
       toast({
         title: "Complaint submitted successfully",
@@ -143,13 +230,24 @@ const PostPage = () => {
             <label className="text-sm font-medium" htmlFor="location">
               Location
             </label>
-            <Input
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Where is this issue located?"
-              required
-            />
+            <div className="flex gap-2">
+              <Input
+                id="location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Where is this issue located?"
+                required
+                className="flex-1"
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={fetchLocation}
+                className="whitespace-nowrap"
+              >
+                Use Current
+              </Button>
+            </div>
           </div>
           
           <div className="space-y-2">
