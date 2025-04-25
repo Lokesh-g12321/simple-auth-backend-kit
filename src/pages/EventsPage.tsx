@@ -1,16 +1,18 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BottomNav from "@/components/BottomNav";
 import { Calendar, Clock, MapPin, Search, User } from "lucide-react";
 import BackButton from "@/components/BackButton";
+import EventRegistrationModal from "@/components/EventRegistrationModal";
 
 const EventsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   
-  // Mock events data
   const allEvents = [
     {
       id: 1,
@@ -53,6 +55,16 @@ const EventsPage = () => {
       category: "education"
     }
   ];
+
+  const handleRegisterClick = (eventTitle: string) => {
+    setSelectedEvent(eventTitle);
+    setShowRegistrationModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowRegistrationModal(false);
+    setSelectedEvent(null);
+  };
 
   const filteredEvents = allEvents.filter(event => 
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -98,7 +110,12 @@ const EventsPage = () => {
                 </div>
               </div>
               <p className="mt-3 text-sm text-gray-600">{event.description}</p>
-              <Button className="mt-3 w-full">Register</Button>
+              <Button 
+                className="mt-3 w-full"
+                onClick={() => handleRegisterClick(event.title)}
+              >
+                Register
+              </Button>
             </CardContent>
           </Card>
         ))}
@@ -149,6 +166,13 @@ const EventsPage = () => {
         </Tabs>
       </div>
       <BottomNav />
+      {showRegistrationModal && selectedEvent && (
+        <EventRegistrationModal
+          isOpen={showRegistrationModal}
+          onClose={handleCloseModal}
+          eventTitle={selectedEvent}
+        />
+      )}
     </div>
   );
 };
