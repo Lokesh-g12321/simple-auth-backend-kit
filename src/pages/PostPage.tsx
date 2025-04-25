@@ -1,4 +1,5 @@
-import { useState, ChangeEvent } from "react";
+
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,18 +22,54 @@ const PostPage = () => {
   const [location, setLocation] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setImage(result);
-      };
-      reader.readAsDataURL(file);
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+      }
+      setIsCameraActive(true);
+    } catch (error) {
+      toast({
+        title: "Camera Error",
+        description: "Unable to access camera. Please make sure you've granted permission.",
+        variant: "destructive",
+      });
     }
   };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
+      const photoUrl = canvas.toDataURL('image/jpeg');
+      setImage(photoUrl);
+      stopCamera();
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,33 +168,49 @@ const PostPage = () => {
           
           <div className="space-y-2">
             <label className="block text-sm font-medium">
-              Attach Image (Optional)
+              Take Photo
             </label>
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 cursor-pointer bg-gray-100 hover:bg-gray-200 transition-colors px-4 py-2 rounded-md">
-                <Camera size={18} />
-                <span>Upload Image</span>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageChange}
-                />
-              </label>
-              {image && (
-                <div className="relative">
-                  <img
-                    src={image}
-                    alt="Preview"
-                    className="h-16 w-16 object-cover rounded-md"
+            <div className="flex flex-col items-center gap-4">
+              {isCameraActive ? (
+                <>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className="w-full max-w-sm rounded-lg border"
                   />
-                  <button
-                    type="button"
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                    onClick={() => setImage(null)}
-                  >
-                    ×
-                  </button>
+                  <div className="flex gap-2">
+                    <Button type="button" onClick={capturePhoto}>
+                      <Camera className="mr-2" />
+                      Capture Photo
+                    </Button>
+                    <Button type="button" variant="outline" onClick={stopCamera}>
+                      Cancel
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center gap-4">
+                  <Button type="button" onClick={startCamera}>
+                    <Camera className="mr-2" />
+                    Open Camera
+                  </Button>
+                  {image && (
+                    <div className="relative">
+                      <img
+                        src={image}
+                        alt="Captured"
+                        className="h-48 w-48 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                        onClick={() => setImage(null)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
