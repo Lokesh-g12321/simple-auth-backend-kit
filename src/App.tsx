@@ -14,6 +14,8 @@ import ComplaintsPage from "./pages/ComplaintsPage";
 import PostPage from "./pages/PostPage";
 import EventsPage from "./pages/EventsPage";
 import LocatorPage from "./pages/LocatorPage";
+import RateToiletPage from "./pages/RateToiletPage";
+import FeedbackPage from "./pages/FeedbackPage";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +34,8 @@ const App = () => (
           <Route path="/post" element={<PostPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/locator" element={<LocatorPage />} />
+          <Route path="/rate-toilet" element={<RateToiletPage />} />
+          <Route path="/feedback" element={<FeedbackPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
