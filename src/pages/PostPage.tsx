@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +13,12 @@ import { toast } from "@/components/ui/use-toast";
 import { Camera, CameraOff } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import BackButton from "@/components/BackButton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const PostPage = () => {
   const [title, setTitle] = useState("");
@@ -24,6 +29,7 @@ const PostPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -50,25 +56,28 @@ const PostPage = () => {
       });
       
       console.log("Camera stream obtained:", stream);
-      if (videoRef.current) {
-        console.log("Setting video source");
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-        
-        // Ensure the video starts playing
-        try {
-          await videoRef.current.play();
-          console.log("Video playback started");
-        } catch (playError) {
-          console.error("Error playing video:", playError);
-          throw playError;
-        }
-      } else {
-        console.error("Video reference is null");
-        throw new Error("Video element not found");
-      }
+      streamRef.current = stream;
+      setCameraDialogOpen(true);
       
-      setIsCameraActive(true);
+      // We'll set the video source after the dialog is opened and the video element is in the DOM
+      setTimeout(() => {
+        if (videoRef.current) {
+          console.log("Setting video source");
+          videoRef.current.srcObject = stream;
+          
+          // Ensure the video starts playing
+          videoRef.current.play().then(() => {
+            console.log("Video playback started");
+            setIsCameraActive(true);
+          }).catch((playError) => {
+            console.error("Error playing video:", playError);
+            setCameraError(`Unable to play video: ${playError.message}`);
+          });
+        } else {
+          console.error("Video reference is still null after timeout");
+          throw new Error("Video element not found after dialog opened");
+        }
+      }, 300); // Short delay to ensure dialog has rendered
     } catch (error) {
       console.error("Camera access error:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -94,6 +103,7 @@ const PostPage = () => {
       videoRef.current.srcObject = null;
     }
     setIsCameraActive(false);
+    setCameraDialogOpen(false);
   };
 
   const capturePhoto = () => {
@@ -327,62 +337,37 @@ const PostPage = () => {
               Take Photo
             </label>
             <div className="flex flex-col items-center gap-4">
-              {isCameraActive ? (
-                <div className="w-full">
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    className="w-full h-64 object-cover rounded-lg border bg-black"
-                    style={{ maxWidth: "100%" }}
-                  />
-                  {cameraError && (
-                    <p className="text-red-500 text-sm mt-1">{cameraError}</p>
-                  )}
-                  <div className="flex justify-center gap-2 mt-2">
-                    <Button type="button" onClick={capturePhoto}>
-                      <Camera className="mr-2" />
-                      Capture Photo
-                    </Button>
-                    <Button type="button" variant="outline" onClick={stopCamera}>
-                      <CameraOff className="mr-2" />
-                      Cancel
-                    </Button>
+              <div className="flex flex-col items-center gap-4 w-full">
+                {cameraError && (
+                  <p className="text-red-500 text-sm">{cameraError}</p>
+                )}
+                <Button 
+                  type="button" 
+                  onClick={startCamera} 
+                  className="w-full md:w-auto"
+                  disabled={isCameraActive}
+                >
+                  <Camera className="mr-2" />
+                  Open Camera
+                </Button>
+                
+                {image && (
+                  <div className="relative">
+                    <img
+                      src={image}
+                      alt="Captured"
+                      className="h-48 w-full object-cover rounded-lg border"
+                    />
+                    <button
+                      type="button"
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                      onClick={() => setImage(null)}
+                    >
+                      ×
+                    </button>
                   </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-4 w-full">
-                  {cameraError && (
-                    <p className="text-red-500 text-sm">{cameraError}</p>
-                  )}
-                  <Button 
-                    type="button" 
-                    onClick={startCamera} 
-                    className="w-full md:w-auto"
-                    disabled={isCameraActive}
-                  >
-                    <Camera className="mr-2" />
-                    Open Camera
-                  </Button>
-                  
-                  {image && (
-                    <div className="relative">
-                      <img
-                        src={image}
-                        alt="Captured"
-                        className="h-48 w-full object-cover rounded-lg border"
-                      />
-                      <button
-                        type="button"
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                        onClick={() => setImage(null)}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
           
@@ -395,6 +380,36 @@ const PostPage = () => {
           </Button>
         </form>
       </div>
+
+      <Dialog open={cameraDialogOpen} onOpenChange={(open) => {
+        if (!open) stopCamera();
+        setCameraDialogOpen(open);
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Camera</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="w-full h-64 object-cover rounded-lg border bg-black"
+            />
+            <div className="flex justify-center gap-2 mt-2 w-full">
+              <Button type="button" onClick={capturePhoto} className="flex-1">
+                <Camera className="mr-2" />
+                Capture
+              </Button>
+              <Button type="button" variant="outline" onClick={stopCamera} className="flex-1">
+                <CameraOff className="mr-2" />
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
       <BottomNav />
     </div>
   );
