@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,30 +117,43 @@ const PostPage = () => {
       const result = await imageToText(blob);
       console.log("Image Analysis result:", result);
       
-      let description = "";
+      let extractedText = "";
       
-      if (Array.isArray(result) && result.length > 0) {
-        if (result[0].text) {
-          description = result[0].text;
-        } 
-        else if (result[0].generated_text) {
-          description = result[0].generated_text;
+      // Handle different response formats
+      if (Array.isArray(result)) {
+        // Handle array response
+        for (const item of result) {
+          if (typeof item === 'object' && item !== null) {
+            // Check if it has 'text' property
+            if ('text' in item && typeof item.text === 'string') {
+              extractedText = item.text;
+              break;
+            }
+            // Check if it has 'generated_text' property
+            if ('generated_text' in item && typeof item.generated_text === 'string') {
+              extractedText = item.generated_text;
+              break;
+            }
+          }
         }
       } else if (typeof result === 'object' && result !== null) {
-        if ('text' in result) {
-          description = result.text;
+        // Handle single object response
+        if ('text' in result && typeof result.text === 'string') {
+          extractedText = result.text;
+        } else if ('generated_text' in result && typeof result.generated_text === 'string') {
+          extractedText = result.generated_text;
         }
       }
       
-      if (description) {
-        console.log("Generated description:", description);
+      if (extractedText) {
+        console.log("Generated description:", extractedText);
         
-        setDescription(description);
+        setDescription(extractedText);
         
-        const title = description.split('.')[0].trim();
-        setTitle(title.length > 50 ? title.substring(0, 47) + '...' : title);
+        const titleText = extractedText.split('.')[0].trim();
+        setTitle(titleText.length > 50 ? titleText.substring(0, 47) + '...' : titleText);
         
-        const detectedCategory = detectCategory(description);
+        const detectedCategory = detectCategory(extractedText);
         if (detectedCategory) {
           setCategory(detectedCategory);
         }
