@@ -108,16 +108,30 @@ const PostPage = () => {
     try {
       console.log("Starting image analysis...");
       
-      const imageToText = await pipeline("image-to-text", "Salesforce/blip-image-captioning-base");
+      const imageToText = await pipeline("image-to-text", "nlpconnect/vit-gpt2-image-captioning");
       
       const base64Data = imageUrl.split(',')[1];
       const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
       
       const result = await imageToText(blob);
-      console.log("BLIP Analysis result:", result);
+      console.log("Image Analysis result:", result);
       
-      if (result && result[0]?.generated_text) {
-        const description = result[0].generated_text;
+      let description = "";
+      
+      if (Array.isArray(result) && result.length > 0) {
+        if (result[0].text) {
+          description = result[0].text;
+        } 
+        else if (result[0].generated_text) {
+          description = result[0].generated_text;
+        }
+      } else if (typeof result === 'object' && result !== null) {
+        if ('text' in result) {
+          description = result.text;
+        }
+      }
+      
+      if (description) {
         console.log("Generated description:", description);
         
         setDescription(description);
@@ -134,6 +148,8 @@ const PostPage = () => {
           title: "Image Analysis Complete",
           description: "Form fields have been automatically filled based on the image.",
         });
+      } else {
+        throw new Error("Could not extract description from image analysis result");
       }
     } catch (error) {
       console.error("Error analyzing image:", error);
