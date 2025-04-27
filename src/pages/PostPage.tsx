@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +21,14 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { pipeline } from "@huggingface/transformers";
+
+type ImageAnalysisItem = {
+  text?: string;
+  generated_text?: string;
+  [key: string]: any;
+};
+
+type ImageAnalysisResult = ImageAnalysisItem | ImageAnalysisItem[] | any;
 
 const PostPage = () => {
   const [title, setTitle] = useState("");
@@ -114,30 +121,27 @@ const PostPage = () => {
       const base64Data = imageUrl.split(',')[1];
       const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
       
-      const result = await imageToText(blob);
+      const result: ImageAnalysisResult = await imageToText(blob);
       console.log("Image Analysis result:", result);
       
       let extractedText = "";
       
-      // Handle different response formats
       if (Array.isArray(result)) {
-        // Handle array response
         for (const item of result) {
           if (typeof item === 'object' && item !== null) {
-            // Check if it has 'text' property
-            if ('text' in item && typeof item.text === 'string') {
-              extractedText = item.text;
-              break;
-            }
-            // Check if it has 'generated_text' property
-            if ('generated_text' in item && typeof item.generated_text === 'string') {
-              extractedText = item.generated_text;
-              break;
+            if (item && typeof item === 'object') {
+              if ('text' in item && typeof item.text === 'string') {
+                extractedText = item.text;
+                break;
+              }
+              if ('generated_text' in item && typeof item.generated_text === 'string') {
+                extractedText = item.generated_text;
+                break;
+              }
             }
           }
         }
-      } else if (typeof result === 'object' && result !== null) {
-        // Handle single object response
+      } else if (result && typeof result === 'object') {
         if ('text' in result && typeof result.text === 'string') {
           extractedText = result.text;
         } else if ('generated_text' in result && typeof result.generated_text === 'string') {
