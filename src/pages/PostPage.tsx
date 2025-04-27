@@ -18,7 +18,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
+import { pipeline } from "@huggingface/transformers";
 
 const PostPage = () => {
   const [title, setTitle] = useState("");
@@ -33,7 +35,6 @@ const PostPage = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Keywords for automatic categorization based on complaint description
   const categoryKeywords = {
     "sanitation": ["garbage", "trash", "waste", "dirty", "litter", "dump", "sewage"],
     "water": ["water", "flood", "pipe", "leak", "drainage", "sewage", "drinking"],
@@ -43,7 +44,6 @@ const PostPage = () => {
 
   const startCamera = async () => {
     try {
-      // Clear any previous errors
       setCameraError(null);
       
       console.log("Starting camera...");
@@ -59,13 +59,11 @@ const PostPage = () => {
       streamRef.current = stream;
       setCameraDialogOpen(true);
       
-      // We'll set the video source after the dialog is opened and the video element is in the DOM
       setTimeout(() => {
         if (videoRef.current) {
           console.log("Setting video source");
           videoRef.current.srcObject = stream;
           
-          // Ensure the video starts playing
           videoRef.current.play().then(() => {
             console.log("Video playback started");
             setIsCameraActive(true);
@@ -77,7 +75,7 @@ const PostPage = () => {
           console.error("Video reference is still null after timeout");
           throw new Error("Video element not found after dialog opened");
         }
-      }, 300); // Short delay to ensure dialog has rendered
+      }, 300);
     } catch (error) {
       console.error("Camera access error:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -106,6 +104,47 @@ const PostPage = () => {
     setCameraDialogOpen(false);
   };
 
+  const analyzeImage = async (imageUrl: string) => {
+    try {
+      console.log("Starting image analysis...");
+      
+      const imageToText = await pipeline("image-to-text", "Salesforce/blip-image-captioning-base");
+      
+      const base64Data = imageUrl.split(',')[1];
+      const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
+      
+      const result = await imageToText(blob);
+      console.log("BLIP Analysis result:", result);
+      
+      if (result && result[0]?.generated_text) {
+        const description = result[0].generated_text;
+        console.log("Generated description:", description);
+        
+        setDescription(description);
+        
+        const title = description.split('.')[0].trim();
+        setTitle(title.length > 50 ? title.substring(0, 47) + '...' : title);
+        
+        const detectedCategory = detectCategory(description);
+        if (detectedCategory) {
+          setCategory(detectedCategory);
+        }
+        
+        toast({
+          title: "Image Analysis Complete",
+          description: "Form fields have been automatically filled based on the image.",
+        });
+      }
+    } catch (error) {
+      console.error("Error analyzing image:", error);
+      toast({
+        title: "Analysis Error",
+        description: "Failed to analyze the image. Please fill in the details manually.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const capturePhoto = () => {
     console.log("Capturing photo...");
     if (videoRef.current) {
@@ -127,6 +166,9 @@ const PostPage = () => {
         console.log("Photo captured successfully");
         
         setImage(photoUrl);
+        
+        analyzeImage(photoUrl);
+        
         stopCamera();
       } catch (error) {
         console.error("Error capturing photo:", error);
@@ -141,7 +183,6 @@ const PostPage = () => {
     }
   };
 
-  // Auto-detect category based on description text
   const detectCategory = (text: string) => {
     const lowerText = text.toLowerCase();
     
@@ -154,7 +195,6 @@ const PostPage = () => {
     return "";
   };
 
-  // Detect location using browser's geolocation
   const fetchLocation = () => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(async position => {
@@ -162,7 +202,6 @@ const PostPage = () => {
         const lon = position.coords.longitude;
 
         try {
-          // Using OpenStreetMap's Nominatim for reverse geocoding
           const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
           const response = await fetch(url);
           const data = await response.json();
@@ -194,16 +233,6 @@ const PostPage = () => {
     }
   };
 
-  // Effect for auto-categorization when description changes
-  useEffect(() => {
-    if (description && !category) {
-      const detectedCategory = detectCategory(description);
-      if (detectedCategory) {
-        setCategory(detectedCategory);
-      }
-    }
-  }, [description]);
-
   useEffect(() => {
     return () => {
       stopCamera();
@@ -215,7 +244,6 @@ const PostPage = () => {
     setIsSubmitting(true);
 
     try {
-      // Process the complaint data
       const complaintData = {
         id: Date.now().toString(),
         title,
@@ -227,10 +255,8 @@ const PostPage = () => {
         date: new Date().toISOString(),
       };
 
-      // Get existing complaints or initialize an empty array
       const existingComplaints = JSON.parse(localStorage.getItem('complaints') || '[]');
       
-      // Add new complaint and save back to localStorage
       existingComplaints.push(complaintData);
       localStorage.setItem('complaints', JSON.stringify(existingComplaints));
       
@@ -388,6 +414,9 @@ const PostPage = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Camera</DialogTitle>
+            <DialogDescription>
+              Take a photo of the issue. The details will be automatically filled.
+            </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center gap-4">
             <video
