@@ -28,7 +28,6 @@ const ProfilePage = () => {
   const [notifications, setNotifications] = useState(true);
   const [avatar, setAvatar] = useState<string | null>(null);
   
-  // Mock user data
   const [userData, setUserData] = useState({
     name: "Active Citizen",
     email: "user@example.com",
@@ -36,7 +35,6 @@ const ProfilePage = () => {
     location: "Sector 32, Chandigarh"
   });
 
-  // Mock complaints data
   const userComplaints = [
     { id: 1, title: "Broken Street Light", status: "In Progress", date: "2023-05-15" },
     { id: 2, title: "Garbage Collection Issue", status: "Resolved", date: "2023-05-10" },
