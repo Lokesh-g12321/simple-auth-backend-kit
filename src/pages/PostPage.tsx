@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
-import { Camera } from "lucide-react";
+import { Camera, CameraOff } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import BackButton from "@/components/BackButton";
 
@@ -23,6 +23,7 @@ const PostPage = () => {
   const [image, setImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -36,15 +37,42 @@ const PostPage = () => {
 
   const startCamera = async () => {
     try {
+      // Clear any previous errors
+      setCameraError(null);
+      
+      console.log("Starting camera...");
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
       });
+      
+      console.log("Camera stream obtained:", stream);
       if (videoRef.current) {
+        console.log("Setting video source");
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
+        
+        // Ensure the video starts playing
+        try {
+          await videoRef.current.play();
+          console.log("Video playback started");
+        } catch (playError) {
+          console.error("Error playing video:", playError);
+          throw playError;
+        }
+      } else {
+        console.error("Video reference is null");
+        throw new Error("Video element not found");
       }
+      
       setIsCameraActive(true);
     } catch (error) {
+      console.error("Camera access error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      setCameraError(`Unable to access camera: ${errorMessage}`);
       toast({
         title: "Camera Error",
         description: "Unable to access camera. Please make sure you've granted permission.",
@@ -54,22 +82,52 @@ const PostPage = () => {
   };
 
   const stopCamera = () => {
+    console.log("Stopping camera...");
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach(track => {
+        console.log("Stopping track:", track.kind);
+        track.stop();
+      });
       streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
     setIsCameraActive(false);
   };
 
   const capturePhoto = () => {
+    console.log("Capturing photo...");
     if (videoRef.current) {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
-      const photoUrl = canvas.toDataURL('image/jpeg');
-      setImage(photoUrl);
-      stopCamera();
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        
+        console.log("Canvas dimensions:", canvas.width, "x", canvas.height);
+        
+        const context = canvas.getContext('2d');
+        if (!context) {
+          console.error("Could not get canvas context");
+          return;
+        }
+        
+        context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        const photoUrl = canvas.toDataURL('image/jpeg');
+        console.log("Photo captured successfully");
+        
+        setImage(photoUrl);
+        stopCamera();
+      } catch (error) {
+        console.error("Error capturing photo:", error);
+        toast({
+          title: "Capture Error",
+          description: "Failed to capture photo.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      console.error("Video element not found for photo capture");
     }
   };
 
@@ -270,35 +328,49 @@ const PostPage = () => {
             </label>
             <div className="flex flex-col items-center gap-4">
               {isCameraActive ? (
-                <>
+                <div className="w-full">
                   <video
                     ref={videoRef}
                     autoPlay
                     playsInline
-                    className="w-full max-w-sm rounded-lg border"
+                    className="w-full h-64 object-cover rounded-lg border bg-black"
+                    style={{ maxWidth: "100%" }}
                   />
-                  <div className="flex gap-2">
+                  {cameraError && (
+                    <p className="text-red-500 text-sm mt-1">{cameraError}</p>
+                  )}
+                  <div className="flex justify-center gap-2 mt-2">
                     <Button type="button" onClick={capturePhoto}>
                       <Camera className="mr-2" />
                       Capture Photo
                     </Button>
                     <Button type="button" variant="outline" onClick={stopCamera}>
+                      <CameraOff className="mr-2" />
                       Cancel
                     </Button>
                   </div>
-                </>
+                </div>
               ) : (
-                <div className="flex flex-col items-center gap-4">
-                  <Button type="button" onClick={startCamera}>
+                <div className="flex flex-col items-center gap-4 w-full">
+                  {cameraError && (
+                    <p className="text-red-500 text-sm">{cameraError}</p>
+                  )}
+                  <Button 
+                    type="button" 
+                    onClick={startCamera} 
+                    className="w-full md:w-auto"
+                    disabled={isCameraActive}
+                  >
                     <Camera className="mr-2" />
                     Open Camera
                   </Button>
+                  
                   {image && (
                     <div className="relative">
                       <img
                         src={image}
                         alt="Captured"
-                        className="h-48 w-48 object-cover rounded-lg"
+                        className="h-48 w-full object-cover rounded-lg border"
                       />
                       <button
                         type="button"
