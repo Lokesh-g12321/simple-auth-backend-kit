@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,54 +8,21 @@ import BottomNav from "@/components/BottomNav";
 import { Calendar, Clock, MapPin, Search, User } from "lucide-react";
 import BackButton from "@/components/BackButton";
 import EventRegistrationModal from "@/components/EventRegistrationModal";
+import { toast } from "@/components/ui/use-toast";
 
 const EventsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [events, setEvents] = useState<any[]>([]);
   
-  const allEvents = [
-    {
-      id: 1,
-      title: "Community Cleanup Drive",
-      date: "2023-06-10",
-      time: "09:00 AM - 12:00 PM",
-      location: "City Park, Sector 10",
-      organizer: "City Municipal Corporation",
-      description: "Join us for a community cleanup drive to make our city cleaner and greener.",
-      category: "cleanup"
-    },
-    {
-      id: 2,
-      title: "Waste Management Workshop",
-      date: "2023-06-15",
-      time: "11:00 AM - 01:00 PM",
-      location: "Community Hall, Sector 22",
-      organizer: "Green Earth NGO",
-      description: "Learn about effective waste segregation and recycling techniques.",
-      category: "education"
-    },
-    {
-      id: 3,
-      title: "Tree Plantation Drive",
-      date: "2023-06-18",
-      time: "08:00 AM - 11:00 AM",
-      location: "Green Belt, Sector 15",
-      organizer: "Environment Protection Society",
-      description: "Help increase the green cover in our city by participating in this plantation drive.",
-      category: "plantation"
-    },
-    {
-      id: 4,
-      title: "Sanitation Awareness Campaign",
-      date: "2023-06-25",
-      time: "10:00 AM - 12:00 PM",
-      location: "Public School, Sector 8",
-      organizer: "Health Department",
-      description: "Awareness program focused on hygiene and sanitation practices.",
-      category: "education"
+  useEffect(() => {
+    // Load saved events from localStorage
+    const savedEvents = localStorage.getItem("communityEvents");
+    if (savedEvents) {
+      setEvents(JSON.parse(savedEvents));
     }
-  ];
+  }, []);
 
   const handleRegisterClick = (eventTitle: string) => {
     setSelectedEvent(eventTitle);
@@ -66,7 +34,7 @@ const EventsPage = () => {
     setSelectedEvent(null);
   };
 
-  const filteredEvents = allEvents.filter(event => 
+  const filteredEvents = events.filter(event => 
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.organizer.toLowerCase().includes(searchQuery.toLowerCase())
@@ -82,7 +50,12 @@ const EventsPage = () => {
 
   const renderEventsList = (events) => {
     if (events.length === 0) {
-      return <p className="text-center py-6 text-gray-500">No events found</p>;
+      return (
+        <div className="text-center py-10">
+          <p className="text-gray-500 mb-4">No events found</p>
+          <p className="text-sm text-gray-400">Events will appear here once they are added by administrators</p>
+        </div>
+      );
     }
 
     return (

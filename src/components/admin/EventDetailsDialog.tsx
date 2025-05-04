@@ -39,10 +39,13 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
     id: 0,
     title: "",
     date: "",
+    time: "",
     location: "",
     status: "Upcoming",
     attendees: 0,
     description: "",
+    organizer: "",
+    category: "cleanup",
   });
 
   useEffect(() => {
@@ -51,20 +54,26 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
         id: event.id,
         title: event.title || "",
         date: event.date || "",
+        time: event.time || "",
         location: event.location || "",
         status: event.status || "Upcoming",
         attendees: event.attendees || 0,
         description: event.description || "",
+        organizer: event.organizer || "",
+        category: event.category || "cleanup",
       });
     } else {
       setEventData({
         id: 0,
         title: "",
         date: "",
+        time: "",
         location: "",
         status: "Upcoming",
         attendees: 0,
         description: "",
+        organizer: "",
+        category: "cleanup",
       });
     }
   }, [event, isCreateMode]);
@@ -116,6 +125,20 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="time" className="text-right">
+              Time:
+            </Label>
+            <Input
+              id="time"
+              name="time"
+              type="text"
+              placeholder="09:00 AM - 12:00 PM"
+              value={eventData.time}
+              onChange={handleChange}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="location" className="text-right">
               Location:
             </Label>
@@ -123,6 +146,18 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
               id="location"
               name="location"
               value={eventData.location}
+              onChange={handleChange}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="organizer" className="text-right">
+              Organizer:
+            </Label>
+            <Input
+              id="organizer"
+              name="organizer"
+              value={eventData.organizer}
               onChange={handleChange}
               className="col-span-3"
             />
@@ -155,6 +190,25 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                 <SelectItem value="Upcoming">Upcoming</SelectItem>
                 <SelectItem value="Completed">Completed</SelectItem>
                 <SelectItem value="Cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="category" className="text-right">
+              Category:
+            </Label>
+            <Select 
+              value={eventData.category} 
+              onValueChange={(value) => handleSelectChange("category", value)}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cleanup">Cleanup</SelectItem>
+                <SelectItem value="education">Education</SelectItem>
+                <SelectItem value="plantation">Plantation</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
           </div>

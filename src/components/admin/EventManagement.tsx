@@ -21,19 +21,22 @@ const EventManagement: React.FC = () => {
   const [isCreateMode, setIsCreateMode] = useState(false);
 
   useEffect(() => {
-    // In a real app, this would fetch from an API
-    const mockEvents = [
-      { id: 1, title: "Community Cleanup", date: "2023-06-15", location: "Sector 32 Park", status: "Upcoming", attendees: 45, description: "Join us for a community cleanup event" },
-      { id: 2, title: "Public Health Workshop", date: "2023-06-22", location: "City Hall", status: "Upcoming", attendees: 30, description: "Learn about public health practices" },
-      { id: 3, title: "Tree Planting Drive", date: "2023-05-30", location: "Sector 21 Garden", status: "Completed", attendees: 60, description: "Help us make the city greener" },
-    ];
-    setEvents(mockEvents);
+    // Load events from localStorage
+    const savedEvents = localStorage.getItem("communityEvents");
+    if (savedEvents) {
+      setEvents(JSON.parse(savedEvents));
+    }
   }, []);
 
+  // Save events to localStorage whenever the events state changes
+  useEffect(() => {
+    localStorage.setItem("communityEvents", JSON.stringify(events));
+  }, [events]);
+
   const filteredEvents = events.filter(event =>
-    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.status.toLowerCase().includes(searchQuery.toLowerCase())
+    event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.status?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleOpenCreateDialog = () => {
@@ -54,6 +57,7 @@ const EventManagement: React.FC = () => {
       const newEvent = {
         ...eventData,
         id: Date.now(),
+        category: eventData.category || "other" // Ensure category is set
       };
       setEvents([...events, newEvent]);
       toast({
@@ -82,7 +86,7 @@ const EventManagement: React.FC = () => {
   };
 
   const getStatusBadgeClass = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'upcoming':
         return "bg-blue-100 text-blue-800 hover:bg-blue-200";
       case 'completed':
@@ -132,7 +136,9 @@ const EventManagement: React.FC = () => {
           <TableBody>
             {filteredEvents.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-6 text-gray-500">No events found</TableCell>
+                <TableCell colSpan={6} className="text-center py-6 text-gray-500">
+                  No events found. Click "New Event" to create your first event.
+                </TableCell>
               </TableRow>
             ) : (
               filteredEvents.map((event) => (
