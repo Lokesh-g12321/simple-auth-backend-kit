@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
-import { Camera, CameraOff } from "lucide-react";
+import { Camera, CameraOff, Upload } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import BackButton from "@/components/BackButton";
 import {
@@ -40,14 +41,16 @@ const PostPage = () => {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   const categoryKeywords = {
-    "sanitation": ["garbage", "trash", "waste", "dirty", "litter", "dump", "sewage"],
-    "water": ["water", "flood", "pipe", "leak", "drainage", "sewage", "drinking"],
-    "road": ["road", "street", "pothole", "traffic", "sidewalk", "pavement", "crack"],
-    "electricity": ["electricity", "power", "light", "outage", "pole", "wire", "bulb"],
+    "sanitation": ["garbage", "trash", "waste", "dirty", "litter", "dump", "sewage", "debris", "pollution", "rubbish"],
+    "water": ["water", "flood", "pipe", "leak", "drainage", "sewage", "drinking", "tap", "plumbing", "puddle", "wet"],
+    "road": ["road", "street", "pothole", "traffic", "sidewalk", "pavement", "crack", "highway", "path", "asphalt"],
+    "electricity": ["electricity", "power", "light", "outage", "pole", "wire", "bulb", "electric", "lamp", "current"],
+    "other": ["building", "park", "wall", "structure", "tree", "bench", "house", "shop", "construction"]
   };
 
   const startCamera = async () => {
@@ -114,6 +117,12 @@ const PostPage = () => {
 
   const analyzeImage = async (imageUrl: string) => {
     try {
+      setIsAnalyzing(true);
+      toast({
+        title: "Analyzing Image",
+        description: "Please wait while we analyze your image...",
+      });
+      
       console.log("Starting image analysis...");
       
       const imageToText = await pipeline("image-to-text", "nlpconnect/vit-gpt2-image-captioning");
@@ -152,11 +161,15 @@ const PostPage = () => {
       if (extractedText) {
         console.log("Generated description:", extractedText);
         
-        setDescription(extractedText);
+        // Enhanced description
+        const enhancedDescription = enhanceDescription(extractedText);
+        setDescription(enhancedDescription);
         
-        const titleText = extractedText.split('.')[0].trim();
-        setTitle(titleText.length > 50 ? titleText.substring(0, 47) + '...' : titleText);
+        // Smart title extraction
+        const titleText = generateSmartTitle(extractedText);
+        setTitle(titleText);
         
+        // Category detection with confidence boost
         const detectedCategory = detectCategory(extractedText);
         if (detectedCategory) {
           setCategory(detectedCategory);
@@ -176,7 +189,85 @@ const PostPage = () => {
         description: "Failed to analyze the image. Please fill in the details manually.",
         variant: "destructive",
       });
+    } finally {
+      setIsAnalyzing(false);
     }
+  };
+
+  const enhanceDescription = (text: string): string => {
+    // Enhance the description with more details about civic issues
+    if (text.length < 30) {
+      // For very short descriptions, add more context
+      return `Civic issue identified: ${text}. This needs attention from municipal authorities.`;
+    }
+    
+    if (!text.endsWith('.')) {
+      text = text + '.';
+    }
+    
+    return text;
+  };
+
+  const generateSmartTitle = (text: string): string => {
+    // Generate a concise title from the description
+    // First try to find a complete sentence that's short enough
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    
+    if (sentences.length > 0) {
+      let bestSentence = sentences[0].trim();
+      
+      // Try to find a sentence between 15 and 50 chars
+      const idealSentence = sentences.find(s => {
+        const trimmed = s.trim();
+        return trimmed.length >= 15 && trimmed.length <= 50;
+      });
+      
+      if (idealSentence) {
+        bestSentence = idealSentence.trim();
+      }
+      
+      // If the best sentence is too long, truncate it
+      if (bestSentence.length > 50) {
+        bestSentence = bestSentence.substring(0, 47) + '...';
+      }
+      
+      return bestSentence.charAt(0).toUpperCase() + bestSentence.slice(1);
+    }
+    
+    // Fallback to taking the first 50 chars
+    return text.length > 50 ? text.substring(0, 47) + '...' : text;
+  };
+
+  const detectCategory = (text: string): string => {
+    const lowerText = text.toLowerCase();
+    let bestCategory = "";
+    let highestScore = 0;
+    
+    // Calculate a score for each category
+    for (const [cat, keywords] of Object.entries(categoryKeywords)) {
+      let score = 0;
+      
+      keywords.forEach(keyword => {
+        // Check if keyword appears in the text
+        if (lowerText.includes(keyword)) {
+          // Give more weight to full word matches than partial matches
+          const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+          if (regex.test(lowerText)) {
+            score += 2;  // Full word match
+          } else {
+            score += 1;  // Partial match
+          }
+        }
+      });
+      
+      if (score > highestScore) {
+        highestScore = score;
+        bestCategory = cat;
+      }
+    }
+    
+    // If no good matches, default to "other"
+    return highestScore > 0 ? bestCategory : "other";
   };
 
   const capturePhoto = () => {
@@ -196,7 +287,7 @@ const PostPage = () => {
         }
         
         context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        const photoUrl = canvas.toDataURL('image/jpeg');
+        const photoUrl = canvas.toDataURL('image/jpeg', 0.8);
         console.log("Photo captured successfully");
         
         setImage(photoUrl);
@@ -217,16 +308,17 @@ const PostPage = () => {
     }
   };
 
-  const detectCategory = (text: string) => {
-    const lowerText = text.toLowerCase();
-    
-    for (const [cat, keywords] of Object.entries(categoryKeywords)) {
-      if (keywords.some(keyword => lowerText.includes(keyword))) {
-        return cat;
-      }
-    }
-    
-    return "";
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const imageDataUrl = event.target?.result as string;
+      setImage(imageDataUrl);
+      analyzeImage(imageDataUrl);
+    };
+    reader.readAsDataURL(file);
   };
 
   const fetchLocation = () => {
@@ -401,18 +493,45 @@ const PostPage = () => {
                 {cameraError && (
                   <p className="text-red-500 text-sm">{cameraError}</p>
                 )}
-                <Button 
-                  type="button" 
-                  onClick={startCamera} 
-                  className="w-full md:w-auto"
-                  disabled={isCameraActive}
-                >
-                  <Camera className="mr-2" />
-                  Open Camera
-                </Button>
+                
+                <div className="grid grid-cols-2 gap-3 w-full">
+                  <Button 
+                    type="button" 
+                    onClick={startCamera} 
+                    className="w-full flex items-center justify-center"
+                    disabled={isCameraActive}
+                  >
+                    <Camera className="mr-2" />
+                    Camera
+                  </Button>
+                  
+                  <div className="relative w-full">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      id="file-upload"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                    <Button 
+                      type="button" 
+                      className="w-full flex items-center justify-center"
+                      disabled={isAnalyzing}
+                    >
+                      <Upload className="mr-2" />
+                      Upload
+                    </Button>
+                  </div>
+                </div>
+                
+                {isAnalyzing && (
+                  <div className="py-3 w-full flex justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
+                  </div>
+                )}
                 
                 {image && (
-                  <div className="relative">
+                  <div className="relative w-full">
                     <img
                       src={image}
                       alt="Captured"
