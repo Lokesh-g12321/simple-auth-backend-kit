@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,19 +17,25 @@ const LocatorPage = () => {
   };
 
   return (
-    <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-100 to-gray-300">
-      <div className="container mx-auto px-4 py-6 relative">
-        <BackButton />
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">SBM Toilet Locator</h1>
+    <div className="min-h-screen app-native-container">
+      <div className="safe-area-top"></div>
+      <div className="app-header px-4 py-3 bg-white/80">
+        <div className="relative flex items-center">
+          <BackButton />
+          <h1 className="text-xl font-bold flex-1 text-center">Toilet Locator</h1>
+        </div>
+      </div>
+      
+      <div className="app-content px-4 py-4">
+        <div className="text-center mb-6">
           <p className="text-gray-600">Find nearby facilities for your convenience</p>
         </div>
 
         {!showMap ? (
-          <div className="max-w-md mx-auto">
+          <div className="max-w-md mx-auto slide-up-animation">
             <form onSubmit={handleTokenSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
                   Enter Mapbox Token
                 </label>
                 <Input
@@ -39,7 +46,7 @@ const LocatorPage = () => {
                   required
                   className="w-full"
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 mt-1 text-left">
                   Get your token at{" "}
                   <a
                     href="https://www.mapbox.com"
@@ -51,14 +58,14 @@ const LocatorPage = () => {
                   </a>
                 </p>
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full app-button">
                 <MapPin className="mr-2" />
                 Show Map
               </Button>
             </form>
           </div>
         ) : (
-          <div className="rounded-lg overflow-hidden shadow-lg">
+          <div className="rounded-lg overflow-hidden shadow-lg h-[calc(100vh-12rem)]">
             <Map mapboxToken={mapboxToken} />
           </div>
         )}

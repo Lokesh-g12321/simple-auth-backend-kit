@@ -1,8 +1,8 @@
+
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import BottomNav from "@/components/BottomNav";
 import { Search } from "lucide-react";
@@ -35,15 +35,17 @@ const ComplaintsPage = () => {
     }
 
     return (
-      <div className="space-y-4">
-        {complaints.map(complaint => (
-          <Card key={complaint.id} className="cursor-pointer hover:shadow-md transition-shadow">
+      <div className="space-y-3">
+        {complaints.map((complaint, index) => (
+          <Card key={complaint.id} 
+                className="app-list-item active:bg-gray-50 transition-colors slide-up-animation" 
+                style={{ animationDelay: `${index * 0.05}s` }}>
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
-                <div>
+                <div className="text-left">
                   <h3 className="font-medium">{complaint.title}</h3>
                   <p className="text-sm text-gray-500">Area: {complaint.area}</p>
-                  <p className="text-sm text-gray-500">Date: {complaint.date}</p>
+                  <p className="text-xs text-gray-500">Date: {complaint.date}</p>
                 </div>
                 <Badge className={
                   complaint.status === "Resolved" 
@@ -63,43 +65,48 @@ const ComplaintsPage = () => {
   };
 
   return (
-    <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-100 to-gray-300">
-      <div className="container mx-auto px-4 py-6 relative">
-        <BackButton />
-        <h1 className="text-2xl font-bold mb-6 text-center">Complaints</h1>
-        
-        <div className="relative mb-6">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+    <div className="min-h-screen app-native-container">
+      <div className="safe-area-top"></div>
+      <div className="app-header px-4 py-3 bg-white/80">
+        <div className="relative flex items-center">
+          <BackButton />
+          <h1 className="text-xl font-bold flex-1 text-center">Complaints</h1>
+        </div>
+      </div>
+      
+      <div className="app-content px-4 py-4">
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
           <Input
             type="text"
             placeholder="Search by title or area..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-10"
           />
         </div>
 
-        <Tabs defaultValue="all">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-4">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="inProgress">In Progress</TabsTrigger>
+            <TabsTrigger value="inProgress">Progress</TabsTrigger>
             <TabsTrigger value="resolved">Resolved</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="all" className="mt-4">
+          <TabsContent value="all" className="mt-2 page-transition">
             {renderComplaintsList(filteredComplaints)}
           </TabsContent>
           
-          <TabsContent value="pending" className="mt-4">
+          <TabsContent value="pending" className="mt-2 page-transition">
             {renderComplaintsList(pendingComplaints)}
           </TabsContent>
           
-          <TabsContent value="inProgress" className="mt-4">
+          <TabsContent value="inProgress" className="mt-2 page-transition">
             {renderComplaintsList(inProgressComplaints)}
           </TabsContent>
           
-          <TabsContent value="resolved" className="mt-4">
+          <TabsContent value="resolved" className="mt-2 page-transition">
             {renderComplaintsList(resolvedComplaints)}
           </TabsContent>
         </Tabs>

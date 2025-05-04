@@ -33,7 +33,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -95,6 +95,7 @@
     overflow: hidden;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    position: fixed;
   }
 
   body {
@@ -104,14 +105,30 @@
     overflow: auto;
     -webkit-overflow-scrolling: touch;
     position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overscroll-behavior: none;
+    user-select: none;
   }
   
-  /* Better tap targets for mobile */
+  /* Improved tap targets for mobile */
   input,
   button,
   a,
   [role="button"] {
     @apply touch-manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Fix iOS text size adjust */
+  body,
+  input,
+  button,
+  textarea,
+  select {
+    -webkit-text-size-adjust: 100%;
   }
 }
 
@@ -122,11 +139,13 @@
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
-/* Safe area insets */
+/* Enhanced safe area insets */
 .safe-area-top {
   padding-top: env(safe-area-inset-top, 0);
+  background-color: var(--background);
 }
 
 .safe-area-bottom {
@@ -141,7 +160,7 @@
   padding-right: env(safe-area-inset-right, 0);
 }
 
-/* Mobile menu */
+/* Improved mobile menu */
 .mobile-menu {
   position: fixed;
   bottom: 0;
@@ -153,6 +172,7 @@
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-around;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
 }
 
 .mobile-menu-item {
@@ -160,6 +180,70 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 3rem;
+  min-height: 3.5rem;
   padding: 0.5rem;
+}
+
+/* Native app page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* App-specific UI elements */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0));
+}
+
+/* Pull to refresh animation */
+.pull-indicator {
+  height: 0;
+  transition: height 0.3s;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pull-indicator.active {
+  height: 60px;
+}
+
+/* Card-like styling for list items */
+.app-list-item {
+  margin-bottom: 0.5rem;
+  border-radius: 12px;
+  background-color: white;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }

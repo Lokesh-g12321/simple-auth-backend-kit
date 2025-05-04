@@ -4,27 +4,29 @@ import { Home, Calendar, PlusCircle, Upload, User } from "lucide-react";
 
 const BottomNav = () => {
   return (
-    <nav className="fixed bottom-0 left-0 w-full bg-white shadow-lg border-t border-gray-200 z-50">
+    <nav className="app-bottom-nav safe-area-bottom">
       <div className="flex justify-around items-center">
-        <Link to="/home" className="flex flex-col items-center p-3 text-gray-600 hover:text-blue-500">
-          <Home className="h-6 w-6" />
-          <span className="text-xs mt-1">Home</span>
+        <Link to="/home" className="flex flex-col items-center p-2 text-gray-600 hover:text-blue-500 active:opacity-70 transition-opacity">
+          <Home className="h-6 w-6 mb-1" />
+          <span className="text-xs">Home</span>
         </Link>
-        <Link to="/events" className="flex flex-col items-center p-3 text-gray-600 hover:text-blue-500">
-          <Calendar className="h-6 w-6" />
-          <span className="text-xs mt-1">Events</span>
+        <Link to="/events" className="flex flex-col items-center p-2 text-gray-600 hover:text-blue-500 active:opacity-70 transition-opacity">
+          <Calendar className="h-6 w-6 mb-1" />
+          <span className="text-xs">Events</span>
         </Link>
-        <Link to="/post" className="flex flex-col items-center p-3 text-gray-600 hover:text-blue-500">
-          <PlusCircle className="h-6 w-6" />
+        <Link to="/post" className="flex flex-col items-center p-2 text-gray-600 hover:text-blue-500 active:opacity-70 transition-opacity">
+          <div className="bg-blue-500 rounded-full p-3 -mt-5 shadow-lg">
+            <PlusCircle className="h-6 w-6 text-white" />
+          </div>
           <span className="text-xs mt-1">Add</span>
         </Link>
-        <Link to="/complaints" className="flex flex-col items-center p-3 text-gray-600 hover:text-blue-500">
-          <Upload className="h-6 w-6" />
-          <span className="text-xs mt-1">Complaints</span>
+        <Link to="/complaints" className="flex flex-col items-center p-2 text-gray-600 hover:text-blue-500 active:opacity-70 transition-opacity">
+          <Upload className="h-6 w-6 mb-1" />
+          <span className="text-xs">Complaints</span>
         </Link>
-        <Link to="/profile" className="flex flex-col items-center p-3 text-gray-600 hover:text-blue-500">
-          <User className="h-6 w-6" />
-          <span className="text-xs mt-1">Profile</span>
+        <Link to="/profile" className="flex flex-col items-center p-2 text-gray-600 hover:text-blue-500 active:opacity-70 transition-opacity">
+          <User className="h-6 w-6 mb-1" />
+          <span className="text-xs">Profile</span>
         </Link>
       </div>
     </nav>

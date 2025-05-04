@@ -38,27 +38,29 @@ const HomePage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-300">
-      <div className="container mx-auto px-4 py-8 pb-24">
-        <div className="text-center mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 app-native-container">
+      <div className="safe-area-top"></div>
+      <div className="app-content px-4 py-6">
+        <div className="text-center mb-6 slide-up-animation">
           <h1 className="text-2xl font-bold text-gray-800">Good Afternoon, Active Citizen</h1>
           <p className="text-gray-600">Here are today's actions for you.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {cards.map((card) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pb-20">
+          {cards.map((card, index) => (
             <Card
               key={card.id}
-              className="p-6 text-center cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-lg"
+              className="p-5 text-center cursor-pointer hover:shadow-lg active:scale-95 transition-all slide-up-animation"
+              style={{ animationDelay: `${index * 0.1}s` }}
               onClick={() => navigate(card.route)}
             >
               <img
                 src={card.image}
                 alt={card.title}
-                className="w-16 h-16 mx-auto mb-4"
+                className="w-16 h-16 mx-auto mb-3"
               />
-              <h2 className="text-xl font-semibold mb-2">{card.title}</h2>
-              <p className="text-gray-600">{card.description}</p>
+              <h2 className="text-xl font-semibold mb-1">{card.title}</h2>
+              <p className="text-gray-600 text-sm">{card.description}</p>
             </Card>
           ))}
         </div>
