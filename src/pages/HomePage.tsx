@@ -38,10 +38,9 @@ const HomePage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 app-native-container">
-      <div className="safe-area-top"></div>
-      <div className="app-content px-4 py-6">
-        <div className="text-center mb-6 slide-up-animation">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200">
+      <div className="container py-6">
+        <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Good Afternoon, Active Citizen</h1>
           <p className="text-gray-600">Here are today's actions for you.</p>
         </div>
@@ -50,8 +49,7 @@ const HomePage = () => {
           {cards.map((card, index) => (
             <Card
               key={card.id}
-              className="p-5 text-center cursor-pointer hover:shadow-lg active:scale-95 transition-all slide-up-animation"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="p-5 text-center cursor-pointer hover:shadow-lg transition-all"
               onClick={() => navigate(card.route)}
             >
               <img

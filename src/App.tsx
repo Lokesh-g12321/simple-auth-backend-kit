@@ -24,28 +24,26 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <div className="app-native-container">
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/complaints" element={<ComplaintsPage />} />
-            <Route path="/post" element={<PostPage />} />
-            <Route path="/events" element={<EventsPage />} />
-            <Route path="/locator" element={<LocatorPage />} />
-            <Route path="/rate-toilet" element={<RateToiletPage />} />
-            <Route path="/feedback" element={<FeedbackPage />} />
-            <Route path="/admin" element={<AdminDashboardPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/complaints" element={<ComplaintsPage />} />
+          <Route path="/post" element={<PostPage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/locator" element={<LocatorPage />} />
+          <Route path="/rate-toilet" element={<RateToiletPage />} />
+          <Route path="/feedback" element={<FeedbackPage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
         <Sonner />
         <Toaster />
-      </div>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
